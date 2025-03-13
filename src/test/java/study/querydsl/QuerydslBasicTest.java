@@ -12,6 +12,9 @@ import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
+import java.util.List;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static study.querydsl.entity.QMember.*;
 
 @SpringBootTest
@@ -92,4 +95,45 @@ public class QuerydslBasicTest {
 
         Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
+
+    // 검색 조건 쿼리 기본 예제
+    @Test
+    public void search() {
+        Member findMember = jpaQueryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10)))
+                .fetchOne();
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void searchAndParam() {
+        List<Member> result1 = jpaQueryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"), // and 조건은 , 쉼표로 간단하게 작성 가능
+                        member.age.eq(10))
+                .fetch();
+
+        assertThat(result1.size()).isEqualTo(1);
+    }
+
+    /*
+    JPQL이 제공하는 모든 검색 조건 제공
+    * member.username.eq("member1") // username = 'member1'
+    member.username.ne("member1") //username != 'member1'
+    member.username.eq("member1").not() // username != 'member1'
+    member.username.isNotNull() //이름이 is not null
+    member.age.in(10, 20) // age in (10,20)
+    member.age.notIn(10, 20) // age not in (10, 20)
+    member.age.between(10,30) //between 10, 30
+    member.age.goe(30) // age >= 30
+    member.age.gt(30) // age > 30
+    member.age.loe(30) // age <= 30
+    member.age.lt(30) // age < 30
+    member.username.like("member%") //like 검색
+    member.username.contains("member") // like ‘%member%’ 검색
+    member.username.startsWith("member") //like ‘member%’ 검색
+    * */
 }
