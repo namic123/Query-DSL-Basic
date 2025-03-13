@@ -193,4 +193,34 @@ public class QuerydslBasicTest {
     *   desc() , asc() : 일반 정렬
         nullsLast() , nullsFirst() : null 데이터 순서 부여
     * */
+
+
+    /* 페이징 */
+    // 조회 건수 제한
+    @Test
+    public void paging1() {
+        List<Member> result = jpaQueryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1) //0부터 시작(zero index)
+                .limit(2) //최대 2건 조회
+                .fetch();
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+    // 전체 조회 수가 필요하면?
+    @Test
+    public void paging2() {
+        QueryResults<Member> queryResults = jpaQueryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetchResults();
+
+        assertThat(queryResults.getTotal()).isEqualTo(4);
+        assertThat(queryResults.getLimit()).isEqualTo(2);
+        assertThat(queryResults.getOffset()).isEqualTo(1);
+        assertThat(queryResults.getResults().size()).isEqualTo(2);
+    }
 }
