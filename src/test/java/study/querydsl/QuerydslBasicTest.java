@@ -90,6 +90,6 @@ public class QuerydslBasicTest {
                 .where(qMember.username.eq("member1")) // 파라미터 바인딩
                 .fetchOne();
 
-        Assertions.assertThat(findMember).isEqualTo("member1");
+        Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 }
