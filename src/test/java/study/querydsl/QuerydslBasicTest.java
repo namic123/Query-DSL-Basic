@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
@@ -136,4 +137,29 @@ public class QuerydslBasicTest {
     member.username.contains("member") // like ‘%member%’ 검색
     member.username.startsWith("member") //like ‘member%’ 검색
     * */
+
+    /* 결과 조회 fetch~ */
+    /*
+    * fetch() : 리스트 조회, 데이터 없으면 빈 리스트 반환
+        fetchOne() : 단 건 조회
+        결과가 없으면 : null
+        결과가 둘 이상이면 : com.querydsl.core.NonUniqueResultException
+        fetchFirst() : limit(1).fetchOne()
+        fetchResults() : 페이징 정보 포함, total count 쿼리 추가 실행
+        fetchCount() : count 쿼리로 변경해서 count 수 조회
+    * */
+
+    @Test
+    public void fetchResult() {
+
+        List<Member> fetch = jpaQueryFactory.selectFrom(member).fetch(); // 리스트 조회, 없으면 빈 리스트
+
+        Member findMember1 = jpaQueryFactory.selectFrom(member).fetchOne(); // 단건 조회, 결과가 둘 이상이면 Exception
+
+        Member findMember2 = jpaQueryFactory.selectFrom(member).fetchFirst(); // 처음 한건 조회
+
+        QueryResults<Member> results = jpaQueryFactory.selectFrom(member).fetchResults(); // 페이징할 때 사용
+
+        long count = jpaQueryFactory.selectFrom(member).fetchCount(); // count 쿼리로 변경
+    }
 }
