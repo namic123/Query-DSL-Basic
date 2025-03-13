@@ -33,7 +33,7 @@ public class QuerydslBasicTest {
 
 
     @BeforeEach
-    public void before(){
+    public void before() {
         jpaQueryFactory = new JPAQueryFactory(em);
 
         Team teamA = new Team("teamA");
@@ -65,7 +65,7 @@ public class QuerydslBasicTest {
 
     /* JPQL 문법 */
     @Test
-    public void startJPQL(){
+    public void startJPQL() {
         String qlString = "select m from Member m where m.username = :username";
 
         Member findMember = em.createQuery(qlString, Member.class)
@@ -91,7 +91,7 @@ public class QuerydslBasicTest {
 
     /* QueryDsl 문법 */
     @Test
-    public void startQuerydsl(){
+    public void startQuerydsl() {
         Member findMember = jpaQueryFactory
                 .select(member)
                 .from(member)
@@ -256,6 +256,7 @@ public class QuerydslBasicTest {
         assertThat(tuple.get(member.age.max())).isEqualTo(40);
         assertThat(tuple.get(member.age.min())).isEqualTo(10);
     }
+
     /**
      * 팀의 이름과 각 팀의 평균 연령을 구해라.
      */
@@ -273,5 +274,42 @@ public class QuerydslBasicTest {
         assertThat(teamA.get(member.age.avg())).isEqualTo(15);
         assertThat(teamB.get(team.name)).isEqualTo("teamB");
         assertThat(teamB.get(member.age.avg())).isEqualTo(35);
+    }
+
+    /*
+     * 팀 A에 소속된 모든 회원
+     * */
+    // 조인 기본 예제
+    @Test
+    public void join() throws Exception {
+        List<Member> findMemberByTeam = jpaQueryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+
+            for (Member member : findMemberByTeam) {
+                System.out.println("member = " + member);
+            }
+        
+    }
+
+    /**
+     * 세타 조인(연관관계가 없는 필드로 조인)
+     * 회원의 이름이 팀 이름과 같은 회원 조회
+     */
+    @Test
+    public void theta_join() throws Exception {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+        List<Member> result = jpaQueryFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        System.out.println("result = " + result);
     }
 }
