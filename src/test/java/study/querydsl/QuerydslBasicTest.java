@@ -2,7 +2,9 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -532,6 +534,7 @@ public class QuerydslBasicTest {
         2. 0 ~ 20살 회원 출력
         3. 21 ~ 30살 회원 출력
     * */
+    @Test
     public void optionalOrderCase (){
         NumberExpression<Integer> rankPath = new CaseBuilder()
                 .when(member.age.between(0, 20)).then(2)
@@ -550,4 +553,40 @@ public class QuerydslBasicTest {
                     rank);
         }
     }
+
+    /*
+    * 상수, 문자 더하기
+    * */
+
+    /*
+    * 상수가 필요하면 Expresiion.constant() 사용
+    * */
+    @Test
+    public void constantExample(){
+        Tuple result = jpaQueryFactory
+                .select(member.username, Expressions.constant("A"))
+                .from(member)
+                .fetchOne();
+
+        System.out.println("result = " + result);
+    }
+
+
+    /*
+    * 문자 더하기 concat
+    * */
+    @Test
+    public void concatStringExample () {
+        String result = jpaQueryFactory
+                .select(member.username.concat("_").concat(member.age.stringValue()))
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        System.out.println("result = " + result);
+    }
+    /*
+    * member.age.stringValue() 부분이 중요한데, 문자가 아닌 다른 타입들은 stringValue() 로 문
+자로 변환할 수 있다. 이 방법은 ENUM을 처리할 때도 자주 사용한다
+    * */
 }
