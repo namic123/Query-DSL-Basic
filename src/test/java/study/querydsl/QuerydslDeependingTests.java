@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.expression.spel.ast.Projection;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -100,6 +101,7 @@ public class QuerydslDeependingTests {
 
 
     // 필드 직접 접근
+    @Test
     public void entityToDtoByField(){
         List<MemberDto> result =jpaQueryFactory
                 .select(Projections.fields(MemberDto.class,
@@ -135,7 +137,7 @@ public class QuerydslDeependingTests {
 
     // 생성자 사용
     @Test
-    public void EntityToDtoByConstructor(){
+    public void entityToDtoByConstructor(){
         List<MemberDto> result = jpaQueryFactory
                 .select(Projections.constructor(MemberDto.class,
                         member.username,
@@ -148,5 +150,17 @@ public class QuerydslDeependingTests {
         }
     }
 
+    // QueryProjection 활용
 
+    @Test
+    public void entityToDtoByQueryProjection(){
+        List<MemberDto> result = jpaQueryFactory
+                .select(new QMemberDto(member.username, member.age))
+                .from(member)
+                .fetch();
+
+        System.out.println("result.toString() = " + result.toString());
+    }
+
+    
 }
