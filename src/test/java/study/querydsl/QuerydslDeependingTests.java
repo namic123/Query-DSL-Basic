@@ -1,13 +1,19 @@
 package study.querydsl;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.expression.spel.ast.Projection;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
@@ -66,6 +72,7 @@ public class QuerydslDeependingTests {
     // 프로젝션 대상이 둘인 경우
     // 프로젝션 대상이 둘 이상이면 튜플이나 DTO로 조회
     // 튜플 조회
+    // 튜플은 가급적이면, repository에서만 활용
     @Test
     public void tupleProjection(){
 
@@ -74,5 +81,72 @@ public class QuerydslDeependingTests {
                 .from(member)
                 .fetch();
     }
+
+    /* Entity to DTO 변환 예제 */
+    /* Setter 방식 */
+    @Test
+    public void entityToDtoBySetter(){
+        List<MemberDto> result = jpaQueryFactory
+                .select(Projections.bean(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto.toString() = " + memberDto.toString());
+        }
+    }
+
+
+    // 필드 직접 접근
+    public void entityToDtoByField(){
+        List<MemberDto> result =jpaQueryFactory
+                .select(Projections.fields(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto.toString() = " + memberDto.toString());
+        }
+    }
+
+
+    /* 엔티티 속성과 필드의 별칭이 다를 때 */
+    @Test
+    public void entityToDtoByAlias(){
+        List<UserDto> fetch = jpaQueryFactory
+                .select(Projections.fields(UserDto.class,
+                        member.username.as("name"),
+                        ExpressionUtils.as(
+                                JPAExpressions
+                                        .select(member.age.max())
+                                        .from(member), "age"
+                        )))
+                .from(member)
+                .fetch();
+
+        for(UserDto userDto : fetch){
+            System.out.println("userDto.toString() = " + userDto.toString());
+        }
+    }
+
+    // 생성자 사용
+    @Test
+    public void EntityToDtoByConstructor(){
+        List<MemberDto> result = jpaQueryFactory
+                .select(Projections.constructor(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+
+        for(MemberDto memberDto : result){
+            System.out.println("memberDto.toString() = " + memberDto.toString());
+        }
+    }
+
 
 }
