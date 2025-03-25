@@ -4,6 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -166,6 +167,7 @@ public class QuerydslDeependingTests {
     }
 
 
+    // 동적 쿼리 - BooleanBuilder
     @Test
     public void dynamicQuery_BooleanBuilder(){
         String usernameParam = "member1";
@@ -192,4 +194,35 @@ public class QuerydslDeependingTests {
                 .fetch();
     }
 
+
+    // 동적 쿼리 - Where 다중 파라미터 사용
+    @Test
+    public void dynamicQuery_WhereParam() throws Exception{
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result = searchMember2(usernameParam, ageParam);
+
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember2(String usernameParam, Integer ageParam) {
+        return jpaQueryFactory
+                .selectFrom(member)
+                .where(usernameEq(usernameParam), ageEq(ageParam))
+                .fetch();
+    }
+
+    private BooleanExpression usernameEq(String usernameCond){
+        return usernameCond != null ? member.username.eq(usernameCond) : null;
+    }
+
+    private BooleanExpression ageEq(Integer ageCond){
+        return ageCond != null ? member.age.eq(ageCond) : null;
+    }
+
+    // usernameEq, ageEq 조합해서 활용
+    private BooleanExpression allEq(String usernameCond, Integer ageCond){
+        return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
 }
