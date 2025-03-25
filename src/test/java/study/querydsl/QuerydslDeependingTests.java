@@ -1,11 +1,13 @@
 package study.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import study.querydsl.entity.Team;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.*;
 
 @SpringBootTest
@@ -162,5 +165,31 @@ public class QuerydslDeependingTests {
         System.out.println("result.toString() = " + result.toString());
     }
 
-    
+
+    @Test
+    public void dynamicQuery_BooleanBuilder(){
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result = searchMember1(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if(usernameCond != null){
+            builder.and(member.username.eq(usernameCond));
+        }
+
+        if(ageCond != null){
+            builder.and(member.age.eq(ageCond));
+        }
+
+        return jpaQueryFactory
+                .selectFrom(member)
+                .where(builder)
+                .fetch();
+    }
+
 }
