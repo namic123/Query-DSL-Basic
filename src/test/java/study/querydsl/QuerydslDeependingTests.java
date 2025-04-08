@@ -2,9 +2,11 @@ package study.querydsl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -206,6 +208,33 @@ public class QuerydslDeependingTests {
         assertThat(result.size()).isEqualTo(1);
     }
 
+
+    // Sql Function 예제
+
+    @Test
+    public void sqlFunction(){
+        List<String> fetch = jpaQueryFactory
+                .select(Expressions.stringTemplate("function('replace',{0}, {1}, {2})", member.username, "member", "M"))
+                .from(member)
+                .fetch();
+
+        for (String string : fetch) {
+            System.out.println(string);
+        }
+    }
+
+    // 소문자 변경 비교
+    @Test
+    public void sqlFunction2(){
+        jpaQueryFactory
+                .select(member.username)
+                .from(member)
+//                .where(member.username.eq(Expressions.stringTemplate("function('lower', {0})", member.username)))
+                .where(member.username.eq(member.username.lower()))
+                .fetch();
+
+    }
+
     private List<Member> searchMember2(String usernameParam, Integer ageParam) {
         return jpaQueryFactory
                 .selectFrom(member)
@@ -225,4 +254,8 @@ public class QuerydslDeependingTests {
     private BooleanExpression allEq(String usernameCond, Integer ageCond){
         return usernameEq(usernameCond).and(ageEq(ageCond));
     }
+
+
+    // 벌크 연산시, 초기화 필수(영속성 컨텍스트의 내용과 DB의 내용이 다를 수 있기 때문이다.)
+
 }
